@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Demo News</string>
+    <string name="please_wait">Пожалуйста, подождите…</string>
+    <string name="placeholder_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </string>
+    <string name="news">Новости</string>
+    <string name="retry">Повторить</string>
+    <string name="source">Источник: </string>
+    <string name="author">Автор:</string>
+    <string name="content">Контент: </string>
+    <string name="content_placeholder_text">"Honor . OLED- 1080, 5G- Kirin 985, 40- , 4100 , Magic UI Android 10. , 23 990 . DR2000 . .\r\n© . Mobiltelefon"</string>
+    <string name="check_internet_connection">Проверьте подключение к сети</string>
+</resources>

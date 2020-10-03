@@ -1,7 +1,6 @@
 package my.mvvm.news.ui.news_list
 
 import android.os.Bundle
-import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
@@ -17,16 +16,14 @@ import my.mvvm.news.App
 import my.mvvm.news.R
 import my.mvvm.news.data.model.Article
 import my.mvvm.news.databinding.ActivityNewsListBinding
-import my.mvvm.news.di.module.ViewModelFactory
 import my.mvvm.news.ui.adapter.footer.NewsLoadStateAdapter
 import my.mvvm.news.ui.adapter.news.ArticleViewHolder
 import my.mvvm.news.ui.adapter.news.NewsAdapter
 import my.mvvm.news.ui.base.BaseMVVMActivity
 import my.mvvm.news.ui.news_details.NewsDetailsActivity
-import my.mvvm.news.utils.AppUtils
 import javax.inject.Inject
 
-class NewsListActivity : BaseMVVMActivity<ActivityNewsListBinding, MainViewModel>(),
+class NewsListActivity : BaseMVVMActivity<ActivityNewsListBinding, NewsViewModel>(),
     ArticleViewHolder.OnArticleClickListener {
 
     @Inject
@@ -35,7 +32,7 @@ class NewsListActivity : BaseMVVMActivity<ActivityNewsListBinding, MainViewModel
     @Inject
     lateinit var mAdapter: NewsAdapter
 
-    private lateinit var mViewModel: MainViewModel
+    private lateinit var mViewModel: NewsViewModel
     private lateinit var mBinding: ActivityNewsListBinding
     private var requestNewsJob: Job? = null
 
@@ -44,7 +41,6 @@ class NewsListActivity : BaseMVVMActivity<ActivityNewsListBinding, MainViewModel
         mBinding = getViewDataBinding()
 
         setUp()
-        checkInternetConnection()
         setUpRecyclerView()
         setUpAdapter()
         setUpOnSwipeRefresh()
@@ -55,6 +51,7 @@ class NewsListActivity : BaseMVVMActivity<ActivityNewsListBinding, MainViewModel
     private fun setUp() {
         initToolbar(R.id.toolbar, R.string.news)
         setHomeAsUp(false)
+        fetchNews()
     }
 
     private fun setUpRecyclerView() {
@@ -99,17 +96,9 @@ class NewsListActivity : BaseMVVMActivity<ActivityNewsListBinding, MainViewModel
         }
     }
 
-    private fun checkInternetConnection() {
-        if (AppUtils.hasNetwork(this)) {
-            fetchNews()
-        } else {
-            showToast(R.string.check_internet_connection)
-        }
-    }
-
-    override fun getViewModel(): MainViewModel {
+    override fun getViewModel(): NewsViewModel {
         mViewModel =
-            ViewModelProvider(this, this.viewModelFactory).get(MainViewModel::class.java)
+            ViewModelProvider(this, viewModelFactory).get(NewsViewModel::class.java)
         return mViewModel
     }
 

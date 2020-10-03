@@ -9,10 +9,12 @@ import dagger.Provides
 import my.mvvm.news.utils.AppUtils
 import my.mvvm.news.utils.Constants
 import okhttp3.Cache
+import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 @Module
 class NetworkModule(private val mApiUrl: String) {
@@ -32,36 +34,50 @@ class NetworkModule(private val mApiUrl: String) {
      */
 
     @Provides
-    internal fun provideOkHttpClient(context: Context): OkHttpClient {
+    internal fun provideOkHttpClient(
+        context: Context,
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .cache(Cache(context.cacheDir, Constants.cashSize))
+            .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
                 var request = chain.request()
-                request = if (AppUtils.hasNetwork(context))
+                request = if (AppUtils.hasNetwork(context)) {
 
-                /**
-                 *  If there is Internet, get the cache that was stored 5 seconds ago.
-                 *  If the cache is older than 5 seconds, then discard it,
-                 *  and indicate an error in fetching the response.
-                 *  The 'max-age' attribute is responsible for this behavior.
-                 */
-                    request.newBuilder().header("Cache-Control", "max-age=" + 5).build()
-                else
-                /**
-                 *  If there is no Internet, get the cache that was stored 5 days ago.
-                 *  If the cache is older than 7 days, then discard it,
-                 *  and indicate an error in fetching the response.
-                 *  The 'max-stale' attribute is responsible for this behavior.
-                 *  The 'only-if-cached' attribute indicates to not retrieve new data; fetch the cache only instead.
-                 */
-                    request.newBuilder().header(
-                        "Cache-Control",
-                        "public, only-if-cached, max-stale=" + 60 * 60 * 24 * 5
-                    ).build()
+                    /**
+                     *  If there is Internet, get the cache that was stored 5 seconds ago.
+                     *  If the cache is older than 5 seconds, then discard it,
+                     *  and indicate an error in fetching the response.
+                     *  The 'max-age' attribute is responsible for this behavior.
+                     */
+                    request.newBuilder().cacheControl(
+                        CacheControl.Builder()
+                            .maxStale(1, TimeUnit.DAYS)
+                            .build()
+                    )
+                        .removeHeader("Pragma").build()
+                } else {
+                    /**
+                     *  If there is no Internet, get the cache that was stored 5 days ago.
+                     *  If the cache is older than 20 days, then discard it,
+                     *  and indicate an error in fetching the response.
+                     *  The 'max-stale' attribute is responsible for this behavior.
+                     *  The 'only-if-cached' attribute indicates to not retrieve new data; fetch the cache only instead.
+                     */
 
+                    request.newBuilder().cacheControl(
+                        CacheControl.Builder()
+                            .onlyIfCached()
+                            .maxStale(10, TimeUnit.DAYS)
+                            .build()
+                    ).removeHeader("Pragma")
+                        .build()
+                }
                 // add modified request to the chain
                 chain.proceed(request)
-            }.build()
+            }
+            .build()
     }
 
     @Provides
@@ -70,8 +86,6 @@ class NetworkModule(private val mApiUrl: String) {
             .excludeFieldsWithoutExposeAnnotation()
             .create()
     }
-
-    // @TODO set cashing functionality
 
     @Provides
     internal fun provideRetrofit(okHttpClient: OkHttpClient, gson: Gson): Retrofit {

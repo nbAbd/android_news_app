@@ -1,5 +1,6 @@
 package my.mvvm.news.ui.news_list
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -8,9 +9,10 @@ import kotlinx.coroutines.flow.Flow
 import my.mvvm.news.data.model.Article
 import my.mvvm.news.data.repository.NewsRepository
 import my.mvvm.news.utils.Constants
-import javax.inject.Inject
+import timber.log.Timber
 
-class MainViewModel @Inject constructor(private val repository: NewsRepository) : ViewModel() {
+class NewsViewModel(repository: NewsRepository) : ViewModel() {
+    private val mRepository = repository
 
     private var currentQueryParamsValue: MutableMap<String, String>? = null
     private var currentNewsRequestResult: Flow<PagingData<Article>>? = null
@@ -26,10 +28,14 @@ class MainViewModel @Inject constructor(private val repository: NewsRepository) 
             return lastNewsResult
         }
         currentQueryParamsValue = queryMap
-        val newResult: Flow<PagingData<Article>> = repository.getNewsResultStream(queryMap)
+        val newResult: Flow<PagingData<Article>> = mRepository.getNewsResultStream(queryMap)
             .cachedIn(viewModelScope)
         currentNewsRequestResult = newResult
         return newResult
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        Timber.d("ONCLEARED()")
+    }
 }
